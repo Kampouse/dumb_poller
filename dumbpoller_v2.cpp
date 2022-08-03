@@ -34,7 +34,7 @@ class   server {
 		nfds = 0;
 		poll_set.reserve(100);
 		 server_addr.sin_family = AF_INET;
-		 server_addr.sin_port = htons(SERVER_PORT);
+		 server_addr.sin_port = htons(port);
 		 server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 		 server_fd = socket(AF_INET, SOCK_STREAM, 0);
 		 fcntl(server_fd, F_SETFL, O_NONBLOCK);
@@ -56,10 +56,7 @@ class   server {
 		int client_fd ;
 		struct sockaddr_in client_addr;
 		socklen_t client_addr_len = sizeof(client_addr);
-			while(1)
-			{
-				std::cout<<  poll_set.size() << std::endl;
-			poll (poll_set.data(),poll_set.size() , -1);
+			poll (poll_set.data(),poll_set.size() , 100);
             for(std::vector<pollfd>::iterator it = poll_set.begin(); it != poll_set.end(); it++)
 			{
 				if(it->revents & POLLIN)
@@ -110,24 +107,10 @@ class   server {
 						}
 					}
 				}
-			}
-
-
 				}
 	};
 
 };
-
-
-
-
-
-
-
-
-
-
-
 
 int nonblock(int sockfd)
 {
@@ -220,7 +203,12 @@ int main(void)
 
 	std::cout << "server as started! " << std::endl;
 	server  serv = server(SERVER_PORT);
+	server  serv2 = server(8889);
+while(1)
+{
 					serv.run();
+					serv2.run();
+}
 
 
 
