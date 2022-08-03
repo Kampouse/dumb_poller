@@ -214,12 +214,24 @@ int main(void)
 {
 
 	std::cout << "server as started! " << std::endl;
-	parser p("default.conf");
+	parser parser("default.conf");
+	std::vector<server_info>temp = 	parser.get_servers();
+	
+
+for (std::vector<server_info>::iterator it = temp.begin(); it != temp.end(); ++it)
+{
+
+ 	server_info server = *it;
+	std::cout << "server_info: " << server.port << std::endl;
+}
+	return 0;
+
+
 	server  serv = server(SERVER_PORT);
 	server  serv2 = server(8889);
-
 while(1)
 {
+
 					serv.run();
 					serv2.run();
 }

@@ -86,7 +86,7 @@ void parser::check_errors(void) {
 		if (bracket_state == -1)
 			throw Exceptions::ConfigError();
 //hack might be broken 
-		if (state == CONFIG_FIELD && (*it).at((it)->length()) != ';')
+		if (state == CONFIG_FIELD && (*it).at((it)->length() - 1) != ';')
 			throw Exceptions::SemicolonError();
 		it++;
 	}
