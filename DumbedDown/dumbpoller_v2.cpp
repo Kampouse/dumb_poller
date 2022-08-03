@@ -14,6 +14,11 @@
 #include<stdlib.h>
 #include<string.h>
 #include <vector>
+
+#include"Exceptions.hpp"
+#include"config_structs.hpp"
+#include"parser.hpp"
+#include"utils.hpp"
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8888
 #define EPOLL_SIZE 5000
@@ -209,8 +214,10 @@ int main(void)
 {
 
 	std::cout << "server as started! " << std::endl;
+	parser p("default.conf");
 	server  serv = server(SERVER_PORT);
 	server  serv2 = server(8889);
+
 while(1)
 {
 					serv.run();
