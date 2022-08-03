@@ -46,8 +46,12 @@ class   server {
 			 exit(1);
 		 }
 		listen(server_fd,100);
-		poll_set.push_back({server_fd,POLLIN | POLLHUP | POLLERR, 0});
-		nfds = 1;
+	   pollfd serv;
+	   serv.fd = server_fd;
+	   serv.events =  POLLIN | POLLHUP | POLLERR;
+	   serv.revents = 0;
+	   poll_set.push_back(serv);
+	   nfds = 1;
 	}
 		server(std::string path);
 		~server(){};
@@ -70,7 +74,11 @@ class   server {
 							exit(1);
 						}
 						fcntl(client_fd, F_SETFL, O_NONBLOCK);
-						poll_set.push_back({client_fd,POLLIN | POLLHUP | POLLERR, 0 });
+						pollfd client;
+						client.fd = client_fd;
+						client.events = POLLIN | POLLHUP | POLLERR;
+						client.revents = 0;
+						poll_set.push_back(client);
 					}
 					else
 					{
