@@ -3,6 +3,7 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include <bits/stdc++.h>
 #include <cstdlib>
 #include <exception>
 
@@ -84,8 +85,8 @@ void parser::check_errors(void) {
 
 		if (bracket_state == -1)
 			throw Exceptions::ConfigError();
-
-		if (state == CONFIG_FIELD && (*it).back() != ';')
+//hack might be broken 
+		if (state == CONFIG_FIELD && (*it).at((it)->length()) != ';')
 			throw Exceptions::SemicolonError();
 		it++;
 	}
