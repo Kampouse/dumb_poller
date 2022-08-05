@@ -3,6 +3,7 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include <algorithm>
 #if OS_LINUX
 #include <bits/stdc++.h>
 #endif
