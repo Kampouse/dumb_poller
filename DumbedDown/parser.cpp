@@ -3,7 +3,10 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#if OS_LINUX
 #include <bits/stdc++.h>
+#endif
+
 #include <cstdlib>
 #include <exception>
 
