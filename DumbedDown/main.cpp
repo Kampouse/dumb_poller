@@ -48,7 +48,7 @@ std::vector<server> servers_starter(std::vector<server_info>lst_config)
 
 for(std::vector<server_info>::iterator it = lst_config.begin(); it != lst_config.end(); it++)
  {
-  server s(it->port);
+  server s(*it);
   lst_servers.push_back(s);
  }
 

@@ -33,10 +33,10 @@ class   server {
 	public:
 			std::vector<pollfd> poll_set;
 		   struct sockaddr_in server_addr;
+		   server_info serveInfo;
 		   int server_fd;
-
 		server(){};
-		server(int port);
+		server( struct server_info serv);
 		server(std::string path);
 		~server(){};
 		void add_client(void);

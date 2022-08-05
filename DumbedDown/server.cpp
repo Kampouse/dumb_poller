@@ -1,9 +1,9 @@
 #include "server.hpp"	
 
-server::server(int port)
+server::server(server_info servInfo)
 {
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(port);
+	server_addr.sin_port = htons(servInfo.port);
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	fcntl(server_fd, F_SETFL, O_NONBLOCK);
@@ -21,6 +21,10 @@ server::server(int port)
 	serv.revents = 0;
 	poll_set.push_back(serv);
 }
+
+
+
+
 
 void   server::clear_fd (int i)
 {
@@ -77,14 +81,4 @@ void server::run()
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
 
