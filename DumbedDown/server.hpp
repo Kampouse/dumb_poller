@@ -33,13 +33,11 @@ class   server {
 	public:
 				std::vector<pollfd> poll_set;
 			   struct sockaddr_in server_addr;
-			   int nfds;
-		   int server_fd;
+			   int server_fd;
 
 		server(){};
 		server(int port)
 	{
-		nfds = 0;
 		 server_addr.sin_family = AF_INET;
 		 server_addr.sin_port = htons(port);
 		 server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
@@ -58,71 +56,63 @@ class   server {
 	   serv.events =  POLLIN | POLLHUP | POLLERR;
 	   serv.revents = 0;
 	   poll_set.push_back(serv);
-	   nfds = 1;
 	}
 		server(std::string path);
 		~server(){};
+
+
+		void add_client(void)
+	{
+		struct sockaddr_in client_addr;
+		socklen_t	client_addr_len = sizeof(client_addr);
+		int			client_fd ;
+		pollfd		client;
+		if((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len)) < 0)
+		{
+		std::cout << client_fd;
+			perror("accept");
+			exit(1);
+		}
+		fcntl(client_fd, F_SETFL, O_NONBLOCK);
+		client.fd = client_fd;
+		client.events = POLLIN | POLLHUP | POLLERR;
+		client.revents = 0;
+		poll_set.push_back(client);
+	}
+    void clear_fd(int i)
+	{
+			close(poll_set[i].fd);
+			poll_set[i].fd = -1;
+			poll_set.erase(poll_set.begin() + i);
+	}
+
+	void get_data_from_client(int i)
+	{
+	   char buf[BUF_SIZE];
+		std::cout << "client_fd: " << poll_set[i].fd << std::endl;
+		int ret = recv(poll_set[i].fd, buf, BUF_SIZE, 0);
+		std::cout << buf << std::endl;
+		if(ret < 0){perror("recv"); exit(1); }
+		else if(ret == 0){ clear_fd(i); }
+		else
+		{
+			std::cout << "recv: " << buf << std::endl; 
+		  const char *http_response = "HTTP/1.1 200 OK\r\n Content-Type: text/html\r\nContent-Length: 13\r\n\r\n Hello World!";
+		  send (poll_set[i].fd, http_response, ret, 0);
+		  clear_fd(i);
+		}
+	}
 		void run()
 	{
-		int client_fd ;
-		struct sockaddr_in client_addr;
-		socklen_t client_addr_len = sizeof(client_addr);
 			poll (poll_set.data(),poll_set.size() , 100);
             for(unsigned long i = 0; i <  poll_set.size();i++)
 			{
 				if(poll_set[i].revents & POLLIN)
 				{
-				std::cout << "pollin" << std::endl;
 					if(poll_set[i].fd == server_fd)
-					{
-						std::cout << "new client" << std::endl; 
-						client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-						if(client_fd < 0)
-						{
-						std::cout << client_fd;
-							perror("accept");
-							exit(1);
-						}
-						fcntl(client_fd, F_SETFL, O_NONBLOCK);
-						pollfd client;
-						client.fd = client_fd;
-						client.events = POLLIN | POLLHUP | POLLERR;
-						client.revents = 0;
-						poll_set.push_back(client);
-					}
+						add_client();
 					else
-					{
-						char buf[BUF_SIZE];
-					std::cout << "client_fd: " << poll_set[i].fd << std::endl;
-						int ret = recv(poll_set[i].fd, buf, BUF_SIZE, 0);
-						std::cout << buf << std::endl;
-						if(ret < 0)
-						{
-							perror("recv");
-							exit(1);
-						}
-						else if(ret == 0)
-						{
-							close(poll_set[i].fd);
-							poll_set[i].fd = -1;
-							poll_set.erase(poll_set.begin() + i);
-							nfds--;
-						}
-						else
-						{
-							std::cout << "recv: " << buf << std::endl; 
-                          const char *http_response = "HTTP/1.1 200 OK\r\n"
-													"Content-Type: text/html\r\n"
-													"Content-Length: 13\r\n"
-													"\r\n"
-													"Hello World!";
-                          send (poll_set[i].fd, http_response, ret, 0);
-						  close (poll_set[i].fd);
-							poll_set[i].fd = -1;
-							poll_set.erase(poll_set.begin() + i);
-						}
-					}
-					
+                        get_data_from_client(i);
 				}
 			}
 	};

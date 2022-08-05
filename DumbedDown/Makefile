@@ -35,7 +35,7 @@ fclean: clean
 	@${RM} ${NAME_TEST}
 
 git:
-		@git add ${SRCS} Makefile Exceptions.hpp config_structs.hpp parser.hpp utils.hpp
+		@git add ${SRCS} Makefile Exceptions.hpp config_structs.hpp parser.hpp utils.hpp server.hpp
 
 re: fclean all
 	
