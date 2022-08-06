@@ -6,6 +6,8 @@
 #include <vector>
 #include <stdbool.h>
 #include <netinet/in.h>
+#include <iostream> 
+#include <algorithm> 
 
 #define WHITESPACES "\t\n\v\f\r "
 
@@ -20,6 +22,21 @@ struct location_info {
 	location_info() {
 		autoindex = false;
 	}
+friend	std::ostream &operator<<(std::ostream &os , const location_info &test)  {
+		os << "root: " << test.root << std::endl;
+		os << "index: " << test.index << std::endl;
+		os << "upload_dir: " << test.upload_dir << std::endl;
+		os << "autoindex: " << test.autoindex << std::endl;
+		std::map<std::string, std::string>::const_iterator it;
+		for (it = test.cgi.begin(); it != test.cgi.end(); it++) {
+			os << "cgi: " << it->first << " " << it->second << std::endl;
+		}
+		std::vector<std::string>::const_iterator it2;
+		for (it2 = test.allowed_requests.begin(); it2 != test.allowed_requests.end(); it2++) {
+			os << "allowed_requests: " << *it2 << std::endl;
+		}
+		return os;
+	 	}
 };
 
 struct server_info {
@@ -38,6 +55,7 @@ struct server_info {
 		server_fd = 0;
 		server_names = "localhost";
 	}
+
 };
 
 typedef enum parsing_state {

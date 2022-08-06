@@ -57,7 +57,8 @@ std::string page = path.substr(start + 3, end);
 std::string::size_type  start_page =  page.find("/");
 page = page.substr(start_page, end);
 location_info local_info =  serv.serveInfo.locations[page];
-std::cout << "|"<< local_info.index <<  "|" <<std::endl;
+
+std::cout << local_info << std::endl;
  if(local_info.root == "")
  {
   std::cout << "404" << std::endl;
@@ -65,7 +66,6 @@ std::cout << "|"<< local_info.index <<  "|" <<std::endl;
  }
 
 }
-
 
 void server::get_data_from_client(int i)
 {
