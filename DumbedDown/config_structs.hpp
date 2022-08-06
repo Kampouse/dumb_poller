@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <netinet/in.h>
 #include <iostream> 
+#include <fstream> 
+#include <ctime>
 #include <algorithm> 
 
 #define WHITESPACES "\t\n\v\f\r "
@@ -22,7 +24,38 @@ struct location_info {
 	location_info() {
 		autoindex = false;
 	}
+
+int find_content_length()const {
+
+   //open file and read it into a string
+   std::string data;
+   std::string file_path = root + "/" +  index;
+   std::ifstream file(file_path.c_str());
+   std::string line;
+   while (std::getline(file, line)){
+	  data += line;
+   }
+   int content_length = data.length();
+   file.close();
+	return content_length;
+}
+ std::string find_type() const
+{
+	std::string type = "text/" + this->index.substr(index.find(".") + 1);
+	return type;
+}
+
 friend	std::ostream &operator<<(std::ostream &os , const location_info &test)  {
+	time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer,80,"%a, %b %d %H:%M:%S %Y",timeinfo);
+	std::string time(buffer);
+		std::string time_string = asctime(timeinfo);
+		time_string.erase(std::remove(time_string.begin(), time_string.end(), '\n'), time_string.end());
+		time_string.insert(time_string.find(' '), " - ");
 		os << "root: " << test.root << std::endl;
 		os << "index: " << test.index << std::endl;
 		os << "upload_dir: " << test.upload_dir << std::endl;
@@ -35,6 +68,10 @@ friend	std::ostream &operator<<(std::ostream &os , const location_info &test)  {
 		for (it2 = test.allowed_requests.begin(); it2 != test.allowed_requests.end(); it2++) {
 			os << "allowed_requests: " << *it2 << std::endl;
 		}
+		std::cout << "content_type: " <<   test.find_type()   << std::endl;
+		//maybe wirte this part in a function before sending it so you can reuse the content value
+		std::cout << "content_length: " << test.find_content_length() << std::endl;
+		std::cout << "time: " << time << std::endl;
 		return os;
 	 	}
 };

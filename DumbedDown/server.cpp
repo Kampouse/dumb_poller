@@ -49,7 +49,7 @@ void server::add_client (void)
 }
 
 
-void find_page( server &serv , std::string &path)
+location_info find_page( server &serv , std::string &path)
 {
 std::string::size_type  start =  path.find("GET");
 std::string::size_type  end =  path.find("HTTP") - 4;
@@ -62,10 +62,30 @@ std::cout << local_info << std::endl;
  if(local_info.root == "")
  {
   std::cout << "404" << std::endl;
-  return;
+  return local_info;
  }
-
+ else
+ {
+  std::cout << "200" << std::endl;
+  return local_info;
+ }
 }
+
+void buid_response(location_info &local_info)
+{
+	std::string response = "HTTP/1.1 200 OK\r\n";
+	
+	response += "Content-Type: " + local_info.find_type() + "\r\n";
+	//response += "Content-Length: " + std::to_string(local_info.size) + "\r\n";
+	response += "\r\n";
+	response += local_info.root;
+}
+
+
+
+
+
+
 
 void server::get_data_from_client(int i)
 {
