@@ -35,11 +35,6 @@ int nonblock(int sockfd)
 }
 
 
-
-
-
-
-
 std::vector<server> servers_starter(std::vector<server_info>lst_config)
 {
 
@@ -51,18 +46,8 @@ for(std::vector<server_info>::iterator it = lst_config.begin(); it != lst_config
   server s(*it);
   lst_servers.push_back(s);
  }
-
-
-
-
 return(lst_servers);
-
 }
-
-
-
-
-
 
 int main(void)
 {

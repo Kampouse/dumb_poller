@@ -5,6 +5,7 @@ server::server(server_info servInfo)
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(servInfo.port);
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+	serveInfo = servInfo;
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	fcntl(server_fd, F_SETFL, O_NONBLOCK);
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &server_addr, sizeof(server_addr));
@@ -21,10 +22,6 @@ server::server(server_info servInfo)
 	serv.revents = 0;
 	poll_set.push_back(serv);
 }
-
-
-
-
 
 void   server::clear_fd (int i)
 {
@@ -51,21 +48,50 @@ void server::add_client (void)
 	poll_set.push_back(client);
 }
 
-	void server::get_data_from_client(int i)
+
+void find_page( server &serv , std::string &path)
+{
+std::string::size_type  start =  path.find("GET");
+std::string::size_type  end =  path.find("HTTP") - 4;
+std::string page = path.substr(start + 3, end);
+std::string::size_type  start_page =  page.find("/");
+page = page.substr(start_page, end);
+location_info local_info =  serv.serveInfo.locations[page];
+std::cout << "|"<< local_info.index <<  "|" <<std::endl;
+ if(local_info.root == "")
+ {
+  std::cout << "404" << std::endl;
+  return;
+ }
+
+}
+
+
+void server::get_data_from_client(int i)
 {
 	   char buf[BUF_SIZE];
+	   std::string data;
 		std::cout << "client_fd: " << poll_set[i].fd << std::endl;
 		int ret = recv(poll_set[i].fd, buf, BUF_SIZE, 0);
+
 		std::cout << buf << std::endl;
 		if(ret < 0){perror("recv"); exit(1); }
 		else if(ret == 0){ clear_fd(i); }
 		else
 		{
+			data = buf;
+			find_page(*this, data);
+		}
+		/*else
+		{
 			std::cout << "recv: " << buf << std::endl; 
+			data = buf;
+			find_page (*this, data);
 		  const char *http_response = "HTTP/1.1 200 OK\r\n Content-Type: text/html\r\nContent-Length: 13\r\n\r\n Hello World!";
 		  send (poll_set[i].fd, http_response, ret, 0);
 		  clear_fd(i);
 		}
+		*/
 }
 void server::run()
 {
