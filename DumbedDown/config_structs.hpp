@@ -25,7 +25,7 @@ struct location_info {
 		autoindex = false;
 	}
 
-int find_content_length()const {
+	std::string find_content()const {
 
    //open file and read it into a string
    std::string data;
@@ -35,9 +35,8 @@ int find_content_length()const {
    while (std::getline(file, line)){
 	  data += line;
    }
-   int content_length = data.length();
    file.close();
-	return content_length;
+	return data;
 }
  std::string find_type() const
 {
@@ -52,6 +51,7 @@ friend	std::ostream &operator<<(std::ostream &os , const location_info &test)  {
     time (&rawtime);
     timeinfo = localtime(&rawtime);
     strftime(buffer,80,"%a, %b %d %H:%M:%S %Y",timeinfo);
+
 	std::string time(buffer);
 		std::string time_string = asctime(timeinfo);
 		time_string.erase(std::remove(time_string.begin(), time_string.end(), '\n'), time_string.end());
@@ -70,7 +70,7 @@ friend	std::ostream &operator<<(std::ostream &os , const location_info &test)  {
 		}
 		std::cout << "content_type: " <<   test.find_type()   << std::endl;
 		//maybe wirte this part in a function before sending it so you can reuse the content value
-		std::cout << "content_length: " << test.find_content_length() << std::endl;
+		std::cout << "content_length: " << test.find_content().length() << std::endl;
 		std::cout << "time: " << time << std::endl;
 		return os;
 	 	}

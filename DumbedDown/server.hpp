@@ -35,6 +35,7 @@ class   server {
 		   struct sockaddr_in server_addr;
 		   server_info serveInfo;
 		   int server_fd;
+		   location_info temp_info;
 		server(){};
 		server( struct server_info serv);
 		server(std::string path);
@@ -42,5 +43,7 @@ class   server {
 		void add_client(void);
 		void clear_fd(int i);
 		void get_data_from_client(int i);
+		void get_data_from_server(int i);
 		void run();
+		std::string response_to_client(location_info &local_info);
 };

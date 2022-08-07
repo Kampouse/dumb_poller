@@ -1,4 +1,5 @@
 #include "server.hpp"	
+#include <sstream>
 
 server::server(server_info servInfo)
 {
@@ -57,8 +58,7 @@ std::string page = path.substr(start + 3, end);
 std::string::size_type  start_page =  page.find("/");
 page = page.substr(start_page, end);
 location_info local_info =  serv.serveInfo.locations[page];
-
-std::cout << local_info << std::endl;
+//std::cout << local_info << std::endl;
  if(local_info.root == "")
  {
   std::cout << "404" << std::endl;
@@ -71,15 +71,30 @@ std::cout << local_info << std::endl;
  }
 }
 
-void buid_response(location_info &local_info)
+std::string buid_response(location_info local_info)
 {
+	time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+	std::stringstream ss;
+	std::string content = local_info.find_content();
+	int content_length = content.length();
+	ss << content_length;
+
+	std::string content_length_str = ss.str();
+	std::string content_type = local_info.find_type();
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer,80,"%a, %b %d %H:%M:%S %Y",timeinfo);
 	std::string response = "HTTP/1.1 200 OK\r\n";
-	
-	response += "Content-Type: " + local_info.find_type() + "\r\n";
-	//response += "Content-Length: " + std::to_string(local_info.size) + "\r\n";
+	response += "Date: " + std::string(buffer) + "\r\n";
+	response += "Content-Type: " + content_type + "\r\n";
+	response += "Content-Length: " + content_length_str  + "\r\n";
 	response += "\r\n";
-	response += local_info.root;
-}
+	response += content;
+	return response;
+	}
 
 
 
@@ -100,7 +115,9 @@ void server::get_data_from_client(int i)
 		else
 		{
 			data = buf;
-			find_page(*this, data);
+			//should reponse build from event be a  added as a event to the poll_set
+			temp_info =  find_page(*this, data);
+			poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
 		}
 		/*else
 		{
@@ -113,6 +130,16 @@ void server::get_data_from_client(int i)
 		}
 		*/
 }
+void server::get_data_from_server(int i)
+{
+
+	std::string http_response =  buid_response(temp_info);
+
+		int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
+	(void)ret;
+		
+
+}
 void server::run()
 {
 	poll (poll_set.data(),poll_set.size() , 100);
@@ -124,6 +151,10 @@ void server::run()
 				add_client();
 			else
 				get_data_from_client(i);
+		}
+		if(poll_set[i].revents & POLLOUT)
+		{
+			get_data_from_server(i);
 		}
 	}
 }
