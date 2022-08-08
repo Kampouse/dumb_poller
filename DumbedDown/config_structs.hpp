@@ -25,6 +25,16 @@ struct location_info {
 		autoindex = false;
 	}
 
+	std::string find_error_page(std::string path)const {
+   std::string data;
+   std::ifstream file(path.c_str());
+   std::string line;
+   while (std::getline(file, line)){
+	  data += line;
+   }
+   file.close();
+	return data;
+}
 	std::string find_content()const {
 
    //open file and read it into a string
