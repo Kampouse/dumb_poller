@@ -26,9 +26,9 @@ server::server(server_info servInfo)
 
 void   server::clear_fd (int i)
 {
-			close(poll_set[i].fd);
-				poll_set[i].fd = -1;
-				poll_set.erase(poll_set.begin() + i);
+	close(poll_set[i].fd);
+	poll_set[i].fd = -1;
+	poll_set.erase(poll_set.begin() + i);
 }
 
 void server::add_client (void)
@@ -49,7 +49,6 @@ void server::add_client (void)
 	poll_set.push_back(client);
 }
 
-
 location_info find_page( server &serv , std::string &path)
 {
 std::string::size_type  start =  path.find("GET");
@@ -59,12 +58,10 @@ std::string::size_type  start_page =  page.find("/");
 page = page.substr(start_page, end);
 location_info local_info =  serv.serveInfo.locations[page];
  if(local_info.root == "" || page == "favicon.ico")
-	  return local_info;
+	  return (local_info);
  else
-  return local_info;
+	  return (local_info);
 }
-
-
 
 void server::get_data_from_client(int i)
 {
@@ -77,8 +74,7 @@ void server::get_data_from_client(int i)
 		else
 		{
 			data = buf;
-			//should reponse build from event be a  added as a event to the poll_set
-			resp =  response(find_page(*this, data), data);
+			resp =  response(find_page(*this, data),this->serveInfo.error_pages,data);
 			poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
 		}
 		/*else
@@ -91,17 +87,15 @@ void server::get_data_from_client(int i)
 		  clear_fd(i);
 		}
 		*/
+
 }
 void server::get_data_from_server(int i)
 {
 
 	std::string http_response =  resp.build_response();
-
 	std::cout << http_response << std::endl;
 		int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
 	(void)ret;
-		
-
 }
 void server::run()
 {
@@ -115,10 +109,9 @@ void server::run()
 			else
 				get_data_from_client(i);
 		}
-		if(poll_set[i].revents & POLLOUT)
+		if (poll_set[i].revents & POLLOUT)
 		{
 			get_data_from_server(i);
 		}
 	}
 }
-
