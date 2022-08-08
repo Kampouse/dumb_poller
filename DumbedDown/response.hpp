@@ -7,11 +7,13 @@ class response {
 	public:
 
 	response();
-	response(location_info serv, std::string &path);
+	response(location_info serv, std::map<int,std::string> error_page,std::string &path);
 	std::string build_response(void);
 	private: 
 	 location_info  local_info;
+	 std::map<int,std::string> error_page;
 	 std::string path;
-
+	 std::string status;
+	 int status_code;
 };
 #endif
