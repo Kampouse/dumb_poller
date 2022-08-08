@@ -27,21 +27,22 @@ std::string  response::build_response(void)
 	return response;
 	}
 
-response::response():path("")
-{
-	
-}
+response::response():path(""){}
 response::response(location_info local_info,std::map<int,std::string> error_page, std::string &path):error_page(error_page),path(path)
 {
 	this->local_info = local_info;
-	this->status = "200 OK";
 	this->path = path;
 	this->local_info = local_info;
 	if (local_info.root == "")
+	{
 		this->status = "404 Not Found";
+		this->status_code = 404;
+	}
 	else
 	{
 		this->status = "200 OK";
+		this->status_code = 200;
+
 	}
 }
 
