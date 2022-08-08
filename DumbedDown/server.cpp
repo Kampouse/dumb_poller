@@ -58,47 +58,11 @@ std::string page = path.substr(start + 3, end);
 std::string::size_type  start_page =  page.find("/");
 page = page.substr(start_page, end);
 location_info local_info =  serv.serveInfo.locations[page];
-//std::cout << local_info << std::endl;
- if(local_info.root == "")
- {
-  std::cout << "404" << std::endl;
-  return local_info;
- }
+ if(local_info.root == "" || page == "favicon.ico")
+	  return local_info;
  else
- {
-  std::cout << "200" << std::endl;
   return local_info;
- }
 }
-
-std::string buid_response(location_info local_info)
-{
-	time_t rawtime;
-    struct tm * timeinfo;
-    char buffer[80];
-	std::stringstream ss;
-	std::string content = local_info.find_content();
-	int content_length = content.length();
-	ss << content_length;
-
-	std::string content_length_str = ss.str();
-	std::string content_type = local_info.find_type();
-
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(buffer,80,"%a, %b %d %H:%M:%S %Y",timeinfo);
-	std::string response = "HTTP/1.1 200 OK\r\n";
-	response += "Date: " + std::string(buffer) + "\r\n";
-	response += "Content-Type: " + content_type + "\r\n";
-	response += "Content-Length: " + content_length_str  + "\r\n";
-	response += "\r\n";
-	response += content;
-	return response;
-	}
-
-
-
-
 
 
 
@@ -106,9 +70,7 @@ void server::get_data_from_client(int i)
 {
 	   char buf[BUF_SIZE];
 	   std::string data;
-		std::cout << "client_fd: " << poll_set[i].fd << std::endl;
 		int ret = recv(poll_set[i].fd, buf, BUF_SIZE, 0);
-
 		std::cout << buf << std::endl;
 		if(ret < 0){perror("recv"); exit(1); }
 		else if(ret == 0){ clear_fd(i); }
@@ -116,7 +78,7 @@ void server::get_data_from_client(int i)
 		{
 			data = buf;
 			//should reponse build from event be a  added as a event to the poll_set
-			temp_info =  find_page(*this, data);
+			resp =  response(find_page(*this, data), data);
 			poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
 		}
 		/*else
@@ -133,8 +95,9 @@ void server::get_data_from_client(int i)
 void server::get_data_from_server(int i)
 {
 
-	std::string http_response =  buid_response(temp_info);
+	std::string http_response =  resp.build_response();
 
+	std::cout << http_response << std::endl;
 		int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
 	(void)ret;
 		

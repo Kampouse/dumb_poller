@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef SERVER_HPP
+#define SERVER_HPP
 #include <iostream>
 #include <string>
 #include <list>
@@ -16,10 +16,10 @@
 #include<stdlib.h>
 #include<string.h>
 #include <vector>
-
 #include"Exceptions.hpp"
 #include"config_structs.hpp"
 #include"parser.hpp"
+#include"response.hpp"
 #include"utils.hpp"
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8888
@@ -27,7 +27,7 @@
 #define BUF_SIZE 0xFFFF
 
 
-
+class response;
 class   server {
 
 	public:
@@ -35,7 +35,7 @@ class   server {
 		   struct sockaddr_in server_addr;
 		   server_info serveInfo;
 		   int server_fd;
-		   location_info temp_info;
+		   response resp;
 		server(){};
 		server( struct server_info serv);
 		server(std::string path);
@@ -47,3 +47,4 @@ class   server {
 		void run();
 		std::string response_to_client(location_info &local_info);
 };
+#endif
