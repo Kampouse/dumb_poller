@@ -24,6 +24,10 @@ struct location_info {
 	location_info() {
 		autoindex = false;
 	}
+	location_info(std::string rooted) {
+		autoindex = false;
+		root = rooted;
+	}
 
 	std::string find_error_page(std::string path)const {
    std::string data;

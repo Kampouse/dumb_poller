@@ -1,5 +1,6 @@
 #include "server.hpp"	
 #include <sstream>
+#include <filesystem>
 
 server::server(server_info servInfo)
 {
@@ -49,31 +50,84 @@ void server::add_client (void)
 	poll_set.push_back(client);
 }
 
-location_info find_page( server &serv , std::string &path)
+static std::string trim(const std::string& str)
 {
-std::string::size_type  start =  path.find("GET");
-std::string::size_type  end =  path.find("HTTP") - 4;
-std::string page = path.substr(start + 3, end);
-std::string::size_type  start_page =  page.find("/");
-page = page.substr(start_page, end);
-location_info local_info =  serv.serveInfo.locations[page];
- if(local_info.root == "" || page == "favicon.ico")
-	  return (local_info);
- else
-	  return (local_info);
+    size_t first = str.find_first_not_of(WHITESPACES);
+    if (first == std::string::npos)
+        return str;
+    size_t last = str.find_last_not_of(WHITESPACES);
+    return str.substr(first, (last - first + 1));
+}
+
+location_info find_page(server &serv, std::string &path)
+{
+	unsigned long pos = -1;
+	std::vector <std::string> allowed_requests;
+	allowed_requests.push_back("GET");
+	allowed_requests.push_back("POST");
+	allowed_requests.push_back("HEAD");
+	allowed_requests.push_back("PUT");
+	allowed_requests.push_back("DELETE");
+	 //refactor to  avoid this
+	for (unsigned int i = 0; i < allowed_requests.size(); i++)
+	{
+		if (path.find(allowed_requests[i]) != std::string::npos)
+		{
+			pos  = i;
+			break;
+		}
+	}
+	std::string::size_type  start =  path.find(allowed_requests[pos]);
+	std::string::size_type  end =  path.find("HTTP") - 4;
+	std::string page = path.substr(start + allowed_requests[pos].size(), end);
+	std::string::size_type  start_page =  page.find("/");
+	std::ifstream file;
+	page = page.substr(start_page, end);
+	return ( serv.serveInfo.locations[page]);
 }
 
 void server::get_data_from_client(int i)
 {
-	   char buf[BUF_SIZE];
-	   std::string data;
+		char buf[BUF_SIZE];
+		std::string data;
 		int ret = recv(poll_set[i].fd, buf, BUF_SIZE, 0);
-		std::cout << buf << std::endl;
-		if(ret < 0){perror("recv"); exit(1); }
-		else if(ret == 0){ clear_fd(i); }
+		if(ret < 0){perror("recv");exit(1);}
+		else if(ret == 0){clear_fd(i);}
 		else
 		{
 			data = buf;
+			std::string path = data.substr(data.find("/"), data.find("HTTP") - 4);
+			std::vector <std::string> contents;
+			contents.push_back(".css");
+			contents.push_back(".html");
+			contents.push_back(".js");
+			contents.push_back(".jpg");
+			contents.push_back(".png");
+			contents.push_back(".gif");
+			contents.push_back(".jpeg");
+			contents.push_back(".bmp");
+		for (unsigned int i = 0; i < contents.size(); i++)
+		{
+           if (path.find(contents[i]) != std::string::npos)
+		   {
+			   std::cout << this->serveInfo.locations["/"].root << path << std::endl;
+			   std::string pathed = trim(this->serveInfo.locations["/"].root + path);
+			   std::ifstream file;
+			   file.open(pathed.c_str());
+			   if (!file.is_open())
+			   {
+				   //  what to send to request when the content is not found
+				   std::cout << "file not found" << std::endl;
+			   }
+			   else
+			   {
+				   file.close();
+				    resp = response(pathed,contents[i]);
+					poll_set[i].revents = 0 | POLLIN | POLLHUP | POLLERR;
+					return;
+			   }
+			}
+		}
 			resp =  response(find_page(*this, data),this->serveInfo.error_pages,data);
 			poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
 		}
@@ -93,8 +147,7 @@ void server::get_data_from_server(int i)
 {
 
 	std::string http_response =  resp.build_response();
-	std::cout << http_response << std::endl;
-		int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
+	int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
 	(void)ret;
 }
 void server::run()
@@ -107,11 +160,20 @@ void server::run()
 			if(poll_set[i].fd == server_fd)
 				add_client();
 			else
+			{
+
 				get_data_from_client(i);
+				if(poll_set[i].revents & POLLIN)
+				{
+					get_data_from_server(i);
+				}
+			}
 		}
-		if (poll_set[i].revents & POLLOUT)
+		if (poll_set[i].revents & POLLOUT )
 		{
+			std::cout << poll_set[i].fd << "POLLOUT: " << server_fd <<  std::endl;
 			get_data_from_server(i);
 		}
+
 	}
 }

@@ -56,7 +56,6 @@ int main(void)
 	parser parser("default.conf");
 	std::vector<server_info>servers_info = 	parser.get_servers();
 	
-
 for (std::vector<server_info>::iterator it = servers_info .begin(); it != servers_info.end(); ++it)
 {
 
@@ -71,7 +70,6 @@ while(1)
 	{
 		it->run();
 	}
-
 }
 
 
