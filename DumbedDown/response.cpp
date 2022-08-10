@@ -10,7 +10,6 @@ std::string readfile(std::string path)
 	return buffer.str();
 }
 
-
 std::string  response::build_response(void)
 {
 	std::string content;
@@ -61,6 +60,7 @@ std::string  response::build_response(void)
 	response += "Content-Type: " + content_type + "\r\n";
 	response += "Content-Length: " + content_length_str  + "\r\n";
 	response += "\r\n";
+	std::cout << response << std::endl;
 	response += content;
 	return response;
 	}

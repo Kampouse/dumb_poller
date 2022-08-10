@@ -86,6 +86,26 @@ location_info find_page(server &serv, std::string &path)
 	return ( serv.serveInfo.locations[page]);
 }
 
+
+std::string content_typer(std::vector<std::string> &content_type,int index)
+{
+	std::string content_type_str;
+	std::string temp;
+	if(index > 2)
+	{
+		 content_type_str = "img/";
+		temp = content_type[index].substr(1, content_type[index].size());
+		content_type_str += temp;
+	}
+	else
+	{
+		content_type_str = "text/";
+		temp = content_type[index].substr(1, content_type[index].size());
+		content_type_str += temp;
+	}
+	return content_type_str;
+}
+
 void server::get_data_from_client(int i)
 {
 		char buf[BUF_SIZE];
@@ -122,7 +142,8 @@ void server::get_data_from_client(int i)
 			   else
 			   {
 				   file.close();
-				    resp = response(pathed,contents[i]);
+				   std::string content_type = content_typer(contents, i);
+				    resp = response(pathed, content_type);
 					poll_set[i].revents = 0 | POLLIN | POLLHUP | POLLERR;
 					return;
 			   }
