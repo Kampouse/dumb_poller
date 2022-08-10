@@ -47,4 +47,8 @@ class   server {
 		void run();
 		std::string response_to_client(location_info &local_info);
 };
+
+	 std::string trim(const std::string& str);
+	 location_info find_page(server &serv, std::string &path);
+	 std::string content_typer(std::vector<std::string> &content_type,int index);
 #endif

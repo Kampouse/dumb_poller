@@ -50,61 +50,6 @@ void server::add_client (void)
 	poll_set.push_back(client);
 }
 
-static std::string trim(const std::string& str)
-{
-    size_t first = str.find_first_not_of(WHITESPACES);
-    if (first == std::string::npos)
-        return str;
-    size_t last = str.find_last_not_of(WHITESPACES);
-    return str.substr(first, (last - first + 1));
-}
-
-static location_info find_page(server &serv, std::string &path)
-{
-	unsigned long pos = -1;
-	std::vector <std::string> allowed_requests;
-	allowed_requests.push_back("GET");
-	allowed_requests.push_back("POST");
-	allowed_requests.push_back("HEAD");
-	allowed_requests.push_back("PUT");
-	allowed_requests.push_back("DELETE");
-	 //refactor to  avoid this
-	for (unsigned int i = 0; i < allowed_requests.size(); i++)
-	{
-		if (path.find(allowed_requests[i]) != std::string::npos)
-		{
-			pos  = i;
-			break;
-		}
-	}
-	std::string::size_type  start =  path.find(allowed_requests[pos]);
-	std::string::size_type  end =  path.find("HTTP") - 4;
-	std::string page = path.substr(start + allowed_requests[pos].size(), end);
-	std::string::size_type  start_page =  page.find("/");
-	std::ifstream file;
-	page = page.substr(start_page, end);
-	return ( serv.serveInfo.locations[page]);
-}
-
-static std::string content_typer(std::vector<std::string> &content_type,int index)
-{
-	std::string content_type_str;
-	std::string temp;
-	if(index > 2)
-	{
-		 content_type_str = "img/";
-		temp = content_type[index].substr(1, content_type[index].size());
-		content_type_str += temp;
-	}
-	else
-	{
-		content_type_str = "text/";
-		temp = content_type[index].substr(1, content_type[index].size());
-		content_type_str += temp;
-	}
-	return content_type_str;
-}
-
 void server::get_data_from_client(int i)
 {
 		char buf[BUF_SIZE];
@@ -117,6 +62,7 @@ void server::get_data_from_client(int i)
 			data = buf;
 			std::string path = data.substr(data.find("/"), data.find("HTTP") - 4);
 			std::vector <std::string> contents;
+			//change this so the location off each elment is correctly placed
 			contents.push_back(".css");
 			contents.push_back(".html");
 			contents.push_back(".js");
@@ -129,6 +75,7 @@ void server::get_data_from_client(int i)
 		{
            if (path.find(contents[i]) != std::string::npos)
 		   {
+			   //change this so the correct location in the root folder
 			   std::cout << this->serveInfo.locations["/"].root << path << std::endl;
 			   std::string pathed = trim(this->serveInfo.locations["/"].root + path);
 			   std::ifstream file;
@@ -151,27 +98,17 @@ void server::get_data_from_client(int i)
 			resp =  response(find_page(*this, data),this->serveInfo.error_pages,data);
 			poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
 		}
-		/*else
-		{
-			std::cout << "recv: " << buf << std::endl; 
-			data = buf;
-			find_page (*this, data);
-		  const char *http_response = "HTTP/1.1 200 OK\r\n Content-Type: text/html\r\nContent-Length: 13\r\n\r\n Hello World!";
-		  send (poll_set[i].fd, http_response, ret, 0);
-		  clear_fd(i);
-		}
-		*/
-
 }
 void server::get_data_from_server(int i)
 {
 	std::string http_response =  resp.build_response();
 	int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
+	close (poll_set[i].fd);
 	(void)ret;
 }
 void server::run()
 {
-	poll (poll_set.data(),poll_set.size() , 100);
+	poll (poll_set.data(),poll_set.size() , 50);
 	for(unsigned long i = 0; i <  poll_set.size();i++)
 	{
 		if(poll_set[i].revents & POLLIN)
