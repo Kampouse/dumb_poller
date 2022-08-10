@@ -19,10 +19,6 @@ std::string  response::build_response(void)
 	int content_length;
 	std::stringstream ss;
 	std::string content_type ;
-	   // its a file that is not the index.html
-	   if(type != "")
-			std::cout << "type: " << type << std::endl;
-
 	if(status_code != 200)
 	{
 		content  = 	local_info.find_error_page( error_page[status_code]);
@@ -39,7 +35,6 @@ std::string  response::build_response(void)
 	}
 	else if (status_code == 200 && type != "")
 	{
-		std::cout << "path: " << path << "|" <<std::endl;
 		content = readfile(path);
 		content_length = content.length();
 		content_type = type;

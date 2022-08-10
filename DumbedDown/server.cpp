@@ -59,7 +59,7 @@ static std::string trim(const std::string& str)
     return str.substr(first, (last - first + 1));
 }
 
-location_info find_page(server &serv, std::string &path)
+static location_info find_page(server &serv, std::string &path)
 {
 	unsigned long pos = -1;
 	std::vector <std::string> allowed_requests;
@@ -86,8 +86,7 @@ location_info find_page(server &serv, std::string &path)
 	return ( serv.serveInfo.locations[page]);
 }
 
-
-std::string content_typer(std::vector<std::string> &content_type,int index)
+static std::string content_typer(std::vector<std::string> &content_type,int index)
 {
 	std::string content_type_str;
 	std::string temp;
@@ -166,7 +165,6 @@ void server::get_data_from_client(int i)
 }
 void server::get_data_from_server(int i)
 {
-
 	std::string http_response =  resp.build_response();
 	int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
 	(void)ret;
@@ -182,7 +180,6 @@ void server::run()
 				add_client();
 			else
 			{
-
 				get_data_from_client(i);
 				if(poll_set[i].revents & POLLIN)
 				{
@@ -192,9 +189,7 @@ void server::run()
 		}
 		if (poll_set[i].revents & POLLOUT )
 		{
-			std::cout << poll_set[i].fd << "POLLOUT: " << server_fd <<  std::endl;
 			get_data_from_server(i);
 		}
-
 	}
 }
