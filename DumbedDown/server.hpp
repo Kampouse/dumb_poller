@@ -46,6 +46,9 @@ class   server {
 		void get_data_from_server(int i);
 		void run();
 		std::string response_to_client(location_info &local_info);
+	private :
+		std::vector<std::string> contents;
+
 };
 
 	 std::string trim(const std::string& str);

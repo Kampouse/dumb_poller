@@ -1,9 +1,11 @@
 #include "server.hpp"	
+#include <cstdint>
 #include <sstream>
 #include <filesystem>
 
 server::server(server_info servInfo)
 {
+
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(servInfo.port);
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
@@ -17,12 +19,22 @@ server::server(server_info servInfo)
 		perror("bind");
 		exit(1);
 	}
+
 	listen(server_fd, 100);
 	pollfd serv;
 	serv.fd = server_fd;
 	serv.events = POLLIN | POLLHUP | POLLERR;
 	serv.revents = 0;
 	poll_set.push_back(serv);
+	contents.push_back(".css");
+	contents.push_back(".html");
+	contents.push_back(".js");
+	contents.push_back(".png");
+	contents.push_back(".jpg");
+	contents.push_back(".jpeg");
+	contents.push_back(".gif");
+	contents.push_back(".ico");
+
 }
 
 void   server::clear_fd (int i)
@@ -61,17 +73,7 @@ void server::get_data_from_client(int i)
 		{
 			data = buf;
 			std::string path = data.substr(data.find("/"), data.find("HTTP") - 4);
-			std::vector <std::string> contents;
-			//change this so the location off each elment is correctly placed
-			contents.push_back(".css");
-			contents.push_back(".html");
-			contents.push_back(".js");
-			contents.push_back(".jpg");
-			contents.push_back(".png");
-			contents.push_back(".gif");
-			contents.push_back(".jpeg");
-			contents.push_back(".bmp");
-		for (unsigned int i = 0; i < contents.size(); i++)
+			for (unsigned int i = 0; i < contents.size(); i++)
 		{
            if (path.find(contents[i]) != std::string::npos)
 		   {
@@ -101,6 +103,7 @@ void server::get_data_from_client(int i)
 				   std::string content_type = content_typer(contents, i);
 				    resp = response(pathed, content_type);
 					poll_set[i].revents = 0 | POLLIN | POLLHUP | POLLERR;
+
 					return;
 			   }
 			}
@@ -115,7 +118,9 @@ void server::get_data_from_server(int i)
 	int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
 #if MACOS
 		close (poll_set[i].fd);
+		poll_set[i].fd = -1;
 #endif
+
 
 	(void)ret;
 }
