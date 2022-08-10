@@ -75,9 +75,19 @@ void server::get_data_from_client(int i)
 		{
            if (path.find(contents[i]) != std::string::npos)
 		   {
-			   //change this so the correct location in the root folder
-			   std::cout << this->serveInfo.locations["/"].root << path << std::endl;
-			   std::string pathed = trim(this->serveInfo.locations["/"].root + path);
+			   std::string root_ext;
+			   if(contents[i] == ".css")
+				   root_ext = "/stylesheets";
+			   else if(contents[i] == ".html")
+				    continue;
+			   else if(contents[i] == ".js")
+				   root_ext = "/javascript";
+			   else
+				   root_ext = "/images";
+			   std::cout << this->serveInfo.locations["/"].root + root_ext  << path << std::endl;
+
+			   std::cout << content_typer(contents,i) << std::endl;
+			   std::string pathed = trim(this->serveInfo.locations["/"].root + root_ext +  path);
 			   std::ifstream file;
 			   file.open(pathed.c_str());
 			   if (!file.is_open())
@@ -103,7 +113,10 @@ void server::get_data_from_server(int i)
 {
 	std::string http_response =  resp.build_response();
 	int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
-	close (poll_set[i].fd);
+#if MACOS
+		close (poll_set[i].fd);
+#endif
+
 	(void)ret;
 }
 void server::run()

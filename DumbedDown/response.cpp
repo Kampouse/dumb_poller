@@ -63,7 +63,6 @@ std::string  response::build_response(void)
 	response::response():path(""){}
 	response::response(std::string &path,std::string &type):path(path),type(type)
 	{
-		std::cout << "path is " << path << type <<  std::endl;
 		if (path == "")
 		{
 			status_code = 404;
