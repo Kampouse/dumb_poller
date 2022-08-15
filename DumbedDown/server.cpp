@@ -15,8 +15,7 @@ server::server(server_info servInfo)
 	bzero(&(server_addr.sin_zero), 8);
 	if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
 	{
-		perror("bind");
-		exit(1);
+		return;
 	}
 
 	listen(server_fd, 100);
@@ -52,7 +51,8 @@ void server::add_client (void)
 	if ((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len)) < 0)
 	{
 		perror("accept");
-		exit(1);
+		return;
+		//exit(1);
 	}
 	fcntl(client_fd, F_SETFL, O_NONBLOCK);
 	client.fd = client_fd;
@@ -66,7 +66,7 @@ void server::get_data_from_client(int i)
 		char buf[BUF_SIZE];
 		std::string data;
 		int ret = recv(poll_set[i].fd, buf, BUF_SIZE, 0);
-		if(ret < 0){perror("recv");exit(1);}
+		if(ret < 0){ return;}
 		else if(ret == 0){clear_fd(i);}
 		else
 		{
@@ -101,27 +101,25 @@ void server::get_data_from_client(int i)
 				   file.close();
 				   std::string content_type = content_typer(contents, i);
 				    resp = response(pathed, content_type);
-					poll_set[i].revents = 0 | POLLIN | POLLHUP | POLLERR;
-
 					return;
 			   }
 			}
 		}
 			resp =  response(find_page(*this, data),this->serveInfo.error_pages,data);
-			poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
+			//poll_set[i].revents = 0 | POLLOUT | POLLHUP | POLLERR;
 		}
 }
 void server::get_data_from_server(int i)
 {
 	std::string http_response =  resp.build_response();
 	int ret = send(poll_set[i].fd, http_response.c_str(), http_response.length(), 0);
-#if MACOS
-		close (poll_set[i].fd);
-		poll_set[i].fd = -1;
+	if(ret < 0){ return;}
+	else if(ret == 0){clear_fd(i);}
+	else
+	{
+		clear_fd(i);
+	}
 	std::cout << "closed" << std::endl;
-#endif
-
-
 	(void)ret;
 }
 void server::run()

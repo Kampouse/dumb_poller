@@ -50,6 +50,9 @@ int main(void)
 {
 
 	std::cout << "server as started! " << std::endl;
+
+//handle server socket so it avoid  sigpipe
+	// signal(SIGPIPE, SIG_IGN);
 	parser parser("default.conf");
 	std::vector<server_info>servers_info = 	parser.get_servers();
 	

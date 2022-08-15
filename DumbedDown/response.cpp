@@ -7,6 +7,7 @@ std::string readfile(std::string path)
 	std::ifstream file(path.c_str());
 	std::stringstream buffer;
 	buffer << file.rdbuf();
+	file.close();
 	return buffer.str();
 }
 
