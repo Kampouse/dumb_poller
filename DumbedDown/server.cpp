@@ -1,5 +1,4 @@
 #include "server.hpp"	
-#include <cstdint>
 #include <sstream>
 #include <filesystem>
 
@@ -79,11 +78,11 @@ void server::get_data_from_client(int i)
 		   {
 			   std::string root_ext;
 			   if(contents[i] == ".css")
-				   root_ext = "/stylesheets";
+				   root_ext = "/styles";
 			   else if(contents[i] == ".html")
 				    continue;
 			   else if(contents[i] == ".js")
-				   root_ext = "/javascript";
+				   root_ext = "/scripts";
 			   else
 				   root_ext = "/images";
 			   std::cout << this->serveInfo.locations["/"].root + root_ext  << path << std::endl;
@@ -119,6 +118,7 @@ void server::get_data_from_server(int i)
 #if MACOS
 		close (poll_set[i].fd);
 		poll_set[i].fd = -1;
+	std::cout << "closed" << std::endl;
 #endif
 
 
