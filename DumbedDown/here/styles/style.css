@@ -1,9 +1,14 @@
-
+/* This is the "body" element selector, which sets the background color of the entire webpage */
 body {
+  /* The background color is set to light blue */
   background-color: lightblue;
 }
 
+/* This is the "h1" element selector, which sets the color and left margin of level 1 headings */
 h1 {
+  /* The color of the heading is set to navy */
   color: navy;
+  /* The left margin is set to 20 pixels */
   margin-left: 20px;
 }
+
