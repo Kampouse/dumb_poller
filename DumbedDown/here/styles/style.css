@@ -1,14 +1,24 @@
-/* This is the "body" element selector, which sets the background color of the entire webpage */
+/* This is the "body" element selector. It is used to select the body element of an HTML document. */
 body {
-  /* The background color is set to light blue */
+  /* The "background-color" property is used to set the background color of the selected element. Here, we are setting the background color of the body element to light blue. */
   background-color: lightblue;
+  /* The "margin" property is used to set the margins around an element. Here, we are not setting any margin for the body element. */
+  margin: 0;
+  /* The "padding" property is used to set the padding around an element. Here, we are not setting any padding for the body element. */
+  padding: 0;
 }
 
-/* This is the "h1" element selector, which sets the color and left margin of level 1 headings */
+/* This is the "h1" element selector. It is used to select h1 elements in an HTML document. */
 h1 {
-  /* The color of the heading is set to navy */
+  /* The "color" property is used to set the color of the text of the selected element. Here, we are setting the color of the h1 element to navy. */
   color: navy;
-  /* The left margin is set to 20 pixels */
+  /* The "margin-left" property is used to set the left margin of the selected element. Here, we are setting the left margin of the h1 element to 20 pixels. */
   margin-left: 20px;
+  /* The "margin-right" property is used to set the right margin of the selected element. Here, we are not setting any right margin for the h1 element. */
+  margin-right: 0;
+  /* The "margin-top" property is used to set the top margin of the selected element. Here, we are not setting any top margin for the h1 element. */
+  margin-top: 0;
+  /* The "margin-bottom" property is used to set the bottom margin of the selected element. Here, we are not setting any bottom margin for the h1 element. */
+  margin-bottom: 0;
 }
 
