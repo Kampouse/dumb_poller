@@ -10,11 +10,14 @@ parser::parser() {}
 parser::~parser() {}
 
 // Overloaded constructor that takes a file path as an argument
+// Calls the parsefile function with the given file path
 parser::parser(std::string _path) {
-	parsefile(_path);  // Call the parsefile function with the given file path
+	parsefile(_path); 
 }
 
 // Function to trim whitespace from a string
+// Searches for the first non-whitespace character and the last non-whitespace character
+// Returns the substring from the first to the last non-whitespace character
 static std::string trim(const std::string& str)
 {
     size_t first = str.find_first_not_of(WHITESPACES);
@@ -25,6 +28,7 @@ static std::string trim(const std::string& str)
 }
 
 // Extract file content into a vector of strings
+// Reads the file line by line, trims the whitespace and stores the lines in a vector
 void parser::extractfile()
 {
 	std::string line;
@@ -38,4 +42,5 @@ void parser::extractfile()
 			{
 				ext_file.push_back(line);
 				break;
-	
+			}
+			// TODO: handle cases where '{' or '}' is found in
