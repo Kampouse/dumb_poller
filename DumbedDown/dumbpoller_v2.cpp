@@ -1,245 +1,131 @@
-#include <iostream>
-#include <string>
-#include <list>
-#include <sys/fcntl.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<arpa/inet.h>
-#include<fcntl.h>
-#include<errno.h>
-#include<unistd.h>
-#include "poll.h" 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include <vector>
+#include <iostream> // for standard I/O
+#include <string> // for string manipulation
+#include <list> // for doubly-linked list
+#include <sys/fcntl.h> // for file control options
+#include <sys/types.h> // for various types used in system calls
+#include <sys/socket.h> // for socket system calls
+#include <netinet/in.h> // for internet address family
+#include <arpa/inet.h> // for internet address to numeric conversion
+#include <fcntl.h> // for file control options
+#include <errno.h> // for errno
+#include <unistd.h> // for various utility functions
+#include "poll.h" // custom poll function header
+#include <stdio.h> // for standard I/O
+#include <stdlib.h> // for standard lib functions
+#include <string.h> // for string functions
+#include <vector> // for vector
 
-#include"Exceptions.hpp"
-#include"config_structs.hpp"
-#include"parser.hpp"
-#include"utils.hpp"
+#include "Exceptions.hpp" // custom exceptions header
+#include "config_structs.hpp" // custom config structs header
+#include "parser.hpp" // custom parser header
+#include "utils.hpp" // custom utils header
+
+// Server constants
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8888
 #define EPOLL_SIZE 5000
 #define BUF_SIZE 0xFFFF
 
+class server {
+public:
+    std::vector<pollfd> poll_set; // pollfd vector to store file descriptors and events
+    struct sockaddr_in server_addr; // socket address structure for the server
+    int nfds; // number of file descriptors
+    int server_fd; // server file descriptor
 
-class   server {
-
-	public:
-				std::vector<pollfd> poll_set;
-			   struct sockaddr_in server_addr;
-			   int nfds;
-		   int server_fd;
-
-		server(){};
-		server(int port)
-	{
-		nfds = 0;
-		poll_set.reserve(100);
-		 server_addr.sin_family = AF_INET;
-		 server_addr.sin_port = htons(port);
-		 server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
-		 server_fd = socket(AF_INET, SOCK_STREAM, 0);
-		 fcntl(server_fd, F_SETFL, O_NONBLOCK);
-		 setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &server_addr, sizeof(server_addr));
-		 bzero(&(server_addr.sin_zero), 8);
-		if	(bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-		 {
-			 perror("bind");
-			 exit(1);
-		 }
-		listen(server_fd,100);
-	   pollfd serv;
-	   serv.fd = server_fd;
-	   serv.events =  POLLIN | POLLHUP | POLLERR;
-	   serv.revents = 0;
-	   poll_set.push_back(serv);
-	   nfds = 1;
-	}
-		server(std::string path);
-		~server(){};
-		void run()
-	{
-		int client_fd ;
-		struct sockaddr_in client_addr;
-		socklen_t client_addr_len = sizeof(client_addr);
-			poll (poll_set.data(),poll_set.size() , 100);
-            for(std::vector<pollfd>::iterator it = poll_set.begin(); it != poll_set.end(); it++)
-			{
-				if(it->revents & POLLIN)
-				{
-					if(it->fd == server_fd)
-					{
-						client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-						if(client_fd < 0)
-						{
-							perror("accept");
-							exit(1);
-						}
-						fcntl(client_fd, F_SETFL, O_NONBLOCK);
-						pollfd client;
-						client.fd = client_fd;
-						client.events = POLLIN | POLLHUP | POLLERR;
-						client.revents = 0;
-						poll_set.push_back(client);
-					}
-					else
-					{
-						char buf[BUF_SIZE];
-						int ret = recv(it->fd, buf, BUF_SIZE, 0);
-						std::cout << buf << std::endl;
-						if(ret < 0)
-						{
-							perror("recv");
-							exit(1);
-						}
-						else if(ret == 0)
-						{
-							close(it->fd);
-							poll_set.erase(it);
-
-							nfds--;
-						}
-						else
-						{
-                          const char *http_response = "HTTP/1.1 200 OK\r\n"
-													"Content-Type: text/html\r\n"
-													"Content-Length: 13\r\n"
-													"\r\n"
-													"Hello World!";
-                          send (it->fd, http_response, ret, 0);
-						  // should look if  the content is full and if so, close the connection
-						  close (it->fd);
-							it->fd = -1;
-						   poll_set.erase(it);
-                         if(it == poll_set.end())
-							break;
-						}
-					}
-				}
-				}
-	};
-
+    server() {};
+    server(int port);
+    server(std::string path);
+    ~server(){};
+    void run(); // method to run the server
 };
 
-int nonblock(int sockfd)
-{
- 
-		fcntl(sockfd, F_SETFL, O_NONBLOCK);
-	return 0;
+// Constructor for server class with port parameter
+server::server(int port) {
+    nfds = 0;
+    poll_set.reserve(100); // reserve memory for vector
+
+    // Initialize socket address structure
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+
+    // Create server file descriptor
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    fcntl(server_fd, F_SETFL, O_NONBLOCK); // Set non-blocking mode
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &server_addr, sizeof(server_addr)); // Allow reuse of address
+    bzero(&(server_addr.sin_zero), 8); // Zero out unused parts of the structure
+
+    // Bind socket to address and port
+    if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        perror("bind");
+        exit(1);
+    }
+
+    // Start listening for incoming connections
+    listen(server_fd, 100);
+
+    // Initialize pollfd structure for server and add it to the poll_set vector
+    pollfd serv;
+    serv.fd = server_fd;
+    serv.events = POLLIN | POLLHUP | POLLERR;
+    serv.revents = 0;
+    poll_set.push_back(serv);
+    nfds = 1;
 }
 
-/*
-int ft_polling(void)
-{
-	 int client_fd = 0;
-	 fd_set select_fd;
-	 struct timeval instant_timeout;
-	 struct  sockaddr_in server_addr;
-	 struct  sockaddr_in client_addr;
-	 int client_addr_len;
-	 int  nfds = 0;
-		nfds = 1;
+// Constructor for server class with file path parameter
+server::server(std::string path) {}
 
-while(1)
-{
-	poll (poll_set, nfds, -1);
-for(int poll_index = 0; poll_index < nfds; poll_index++)
-{
-	if(poll_set[poll_index].revents & POLLIN)
-	{
-		if(poll_set[poll_index].fd == server_fd)
-		{
-			socklen_t client_addr_len = sizeof(struct sockaddr_in);
-			client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-			nonblock(client_fd);
-			poll_set[nfds].fd = client_fd;
-			poll_set[nfds].events = POLLIN;
-			poll_set[nfds].revents = 0;
-			nfds++;
-		}
-		else
-		{
-			char buf[BUF_SIZE];
+// Method to run the server
+void server::run() {
+    int client_fd;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
 
-			int ret = recv(poll_set[poll_index].fd, buf, BUF_SIZE, 0);
-			std::cout<<"request?:"<<buf <<std::endl;
-			if(ret == 0)
-			{
-				close(poll_set[poll_index].fd);
-				poll_set[poll_index].fd = -1;
-			}
-			else if(ret < 0)
-			{
-				perror("recv");
-				close(poll_set[poll_index].fd);
-				poll_set[poll_index].fd = -1;
-			}
-			else
-			{
-				const	char *response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>Hello World</h1></body></html>\r\n";
-				send(poll_set[poll_index].fd, response, ret, 0);
-				 close (poll_set[poll_index].fd);
-				 poll_set[poll_index].fd = -1;
-			}
-		}
-		
-	}
-	else if( poll_set[poll_index].revents & POLLERR)
-	{
-		close(poll_set[poll_index].fd);
-		poll_set[poll_index].fd = -1;
-	}
-	else if( poll_set[poll_index].revents & POLLHUP)
-	{
-		close(poll_set[poll_index].fd);
-		poll_set[poll_index].fd = -1;
-	}
-	else if( poll_set[poll_index].revents & POLLNVAL)
-	{
-		close(poll_set[poll_index].fd);
-		poll_set[poll_index].fd = -1;
-	}
-}
+    // Wait for events on file descriptors
+    poll(poll_set.data(), poll_set.size(), 100);
 
-}
-return 0;
-}
+    // Iterate through the poll_set vector
+    for (std::vector<pollfd>::iterator it = poll_set.begin(); it != poll_set.end(); it++) {
+        if (it->revents & POLLIN) {
+            if (it->fd == server_fd) {
+                // Accept new connection
+                client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
+                if (client_fd < 0) {
+                    perror("accept");
+                    exit(1);
+                }
+                fcntl(client_fd, F_SETFL, O_NONBLOCK); // Set non-blocking mode
 
-*/
-
-int main(void)
-{
-
-	std::cout << "server as started! " << std::endl;
-	parser parser("default.conf");
-	std::vector<server_info>temp = 	parser.get_servers();
-	
-
-for (std::vector<server_info>::iterator it = temp.begin(); it != temp.end(); ++it)
-{
-
- 	server_info server = *it;
-	std::cout << "server_info: " << server.port << std::endl;
-}
-	return 0;
-
-
-	server  serv = server(SERVER_PORT);
-	server  serv2 = server(8889);
-while(1)
-{
-
-					serv.run();
-					serv2.run();
-}
-
-
-
-	return 0;
-
-
-}
-
+                // Initialize pollfd structure for client and add it to the poll_set vector
+                pollfd client;
+                client.fd = client_fd;
+                client.events = POLLIN | POLLHUP | POLLERR;
+                client.revents = 0;
+                poll_set.push_back(client);
+                nfds++;
+            } else {
+                // Handle data from client
+                char buf[BUF_SIZE];
+                int ret = recv(it->fd, buf, BUF_SIZE, 0);
+                std::cout << buf << std::endl;
+                if (ret < 0) {
+                    perror("recv");
+                    exit(1);
+                } else if (ret == 0) {
+                    // Connection closed by client
+                    close(it->fd);
+                    poll_set.erase(it);
+                    nfds--;
+                } else {
+                    // Send HTTP response
+                    const char *http_response = "HTTP/1.1 200 OK\r\n"
+                                                "Content-Type: text/html\r\n"
+                                                "Content-Length: 13\r\n"
+                                                "\r\n"
+                                                "Hello World!";
+                    send(it->fd, http_response, ret, 0);
+                    // Close connection if content is full
+                    close(it->fd);
+                    it
